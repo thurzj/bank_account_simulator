@@ -1,3 +1,5 @@
+import json
+
 #Creating a class Account and it functions
 class Account:
     def __init__(self, account_holder, balance=0):
@@ -33,6 +35,31 @@ class Account:
     def statement(self):
         return f"\nHolder: {self.account_holder} | Balance: R${self.balance:.2f}"
 
+
+def save_accounts(filename='accounts.json'):
+    with open(filename, 'w') as user_accounts:
+        json.dump(
+            {
+                user: {
+                    'account_holder': acc.account_holder,
+                    'balance': acc.balance
+                }
+                for user, acc in accounts.items()
+            },
+            user_accounts,
+            indent=4
+        )
+
+
+def load_accounts(filename = 'accounts.json'):
+    try:
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            for user, info in data.items():
+                accounts[user] = Account(info['account_holder'], info['balance'])
+
+    except FileNotFoundError:
+        pass
 
 accounts = {} #Dictionary of accounts
 
@@ -75,6 +102,7 @@ def first_interface():
                             continue
                         accounts[new_username] = Account(new_username, balance)
                         print('Username successfully created\n')
+                        save_accounts()
 
                         #After creating an account redirect the user to the second interface
                         second_interface(accounts[new_username])
@@ -89,7 +117,7 @@ def first_interface():
                     print('Operation cancelled')
                     break
                 elif login_username in accounts:
-                    print(f'Welcome back, {login_username}!\n')
+                    print(f'\nWelcome back, {login_username}!\n')
                     second_interface(accounts[login_username])
 
                 else:
@@ -102,7 +130,7 @@ def first_interface():
         else:
             print('\nInvalid option. Choose a valid option')
 
-#Interface pós login
+#Interface after login
 def second_interface(account):
 #Creating a loop for the second interface
     while True:
@@ -127,6 +155,8 @@ def second_interface(account):
                 amount = float(amount_input)
                 success, message = account.deposit(amount)
                 print(message)
+                if success:
+                    save_accounts()
 
 
 
@@ -140,6 +170,8 @@ def second_interface(account):
                 amount = float(amount_input)
                 success, message = account.withdraw(amount)
                 print(message)
+                if success:
+                    save_accounts()
 
 
         elif choice == '3':
@@ -153,7 +185,9 @@ def second_interface(account):
         else:
             print('Invalid option. Try again')
 
+load_accounts()
 first_interface()
+save_accounts()
 
 
 
